@@ -161,24 +161,27 @@ async function fetchProducts() {
 function getProductImage(productName) {
     const name = productName.toLowerCase();
     
-    // Map product names to Unsplash images
+    // Map product names to distinct images (order matters - more specific first)
+    if (name.includes('mouse')) {
+        return 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=300&fit=crop';
+    }
+    if (name.includes('keyboard')) {
+        return 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=400&h=300&fit=crop';
+    }
     if (name.includes('monitor') || name.includes('display')) {
         return 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400&h=300&fit=crop';
     }
     if (name.includes('chair')) {
         return 'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=400&h=300&fit=crop';
     }
-    if (name.includes('console') || name.includes('gaming')) {
-        return 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400&h=300&fit=crop';
-    }
     if (name.includes('headset') || name.includes('headphone')) {
         return 'https://images.unsplash.com/photo-1599669454699-248893623440?w=400&h=300&fit=crop';
     }
-    if (name.includes('keyboard')) {
-        return 'https://icon2.cleanpng.com/20180520/lwc/kisspng-computer-keyboard-cooler-master-masterkeys-pro-l-m-5b014e75338806.2634158315268122772111.jpg';
+    if (name.includes('controller') || name.includes('gamepad')) {
+        return 'https://images.unsplash.com/photo-1592840496694-26d035b52b48?w=400&h=300&fit=crop';
     }
-    if (name.includes('mouse')) {
-        return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTX4fitkifC9A9gcbsOgbBn_GSySjXcRpF3VQ&s';
+    if (name.includes('console') || name.includes('playstation') || name.includes('xbox')) {
+        return 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400&h=300&fit=crop';
     }
     if (name.includes('laptop') || name.includes('notebook')) {
         return 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=300&fit=crop';
@@ -188,9 +191,6 @@ function getProductImage(productName) {
     }
     if (name.includes('speaker')) {
         return 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400&h=300&fit=crop';
-    }
-    if (name.includes('controller') || name.includes('gamepad')) {
-        return 'https://images.unsplash.com/photo-1592840496694-26d035b52b48?w=400&h=300&fit=crop';
     }
     // Default product image
     return 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=400&h=300&fit=crop';
