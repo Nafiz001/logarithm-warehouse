@@ -57,18 +57,44 @@ jobs:
         run: |
           docker compose up -d
           echo "Waiting for services to be healthy..."
-          sleep 30
+          sleep 60
 
       - name: Check service health
         run: |
           echo "=== Checking Nginx Health ==="
-          curl -f http://localhost/health || exit 1
+          for i in {1..10}; do
+            if curl -sf http://localhost/health; then
+              echo ""
+              echo "✅ Nginx is healthy"
+              break
+            fi
+            echo "Waiting for Nginx... (attempt $i/10)"
+            sleep 5
+          done
           
+          echo ""
           echo "=== Checking Order Service Health ==="
-          curl -f http://localhost/order-health || exit 1
+          for i in {1..10}; do
+            if curl -sf http://localhost/order-health; then
+              echo ""
+              echo "✅ Order Service is healthy"
+              break
+            fi
+            echo "Waiting for Order Service... (attempt $i/10)"
+            sleep 5
+          done
           
+          echo ""
           echo "=== Checking Inventory Service Health ==="
-          curl -f http://localhost/inventory-health || exit 1
+          for i in {1..10}; do
+            if curl -sf http://localhost/inventory-health; then
+              echo ""
+              echo "✅ Inventory Service is healthy"
+              break
+            fi
+            echo "Waiting for Inventory Service... (attempt $i/10)"
+            sleep 5
+          done
 
       - name: Run integration tests
         run: |
