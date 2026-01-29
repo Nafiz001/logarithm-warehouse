@@ -37,6 +37,20 @@ services:
       - warehouse-network
 
   # ============================================
+  # REDIS (Global Gremlin Counter)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - warehouse-network
+
+  # ============================================
   # MICROSERVICES
   # ============================================
   order-service:
@@ -71,6 +85,8 @@ services:
       NODE_ENV: production
       PORT: 3002
       DATABASE_URL: postgres://inventoryuser:inventorypass@inventory-db:5432/inventory
+      # Redis for global Gremlin counter
+      REDIS_URL: redis://redis:6379
       # Gremlin latency configuration
       GREMLIN_ENABLED: "true"
       GREMLIN_EVERY_NTH_REQUEST: 5
@@ -80,6 +96,8 @@ services:
       CHAOS_CRASH_PROBABILITY: 0.1
     depends_on:
       inventory-db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]

@@ -221,8 +221,8 @@ async function addStock(req, res) {
 /**
  * Get service status (gremlin/chaos info)
  */
-function getStatus(req, res) {
-  const status = inventoryService.getServiceStatus();
+async function getStatus(req, res) {
+  const status = await inventoryService.getServiceStatus();
   return res.status(200).json({
     success: true,
     ...status

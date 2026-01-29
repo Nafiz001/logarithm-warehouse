@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
     const responseTime = Date.now() - startTime;
 
     // Get service status (gremlin/chaos)
-    const serviceStatus = inventoryService.getServiceStatus();
+    const serviceStatus = await inventoryService.getServiceStatus();
 
     const healthResponse = {
       status: isHealthy ? 'healthy' : 'unhealthy',

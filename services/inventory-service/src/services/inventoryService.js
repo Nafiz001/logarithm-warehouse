@@ -285,9 +285,9 @@ class InventoryService {
   /**
    * Get service status including chaos/gremlin info
    */
-  getServiceStatus() {
+  async getServiceStatus() {
     return {
-      gremlin: getGremlinStatus(),
+      gremlin: await getGremlinStatus(),
       chaos: getChaosStatus()
     };
   }
