@@ -64,12 +64,12 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "avg_over_time(order_service_response_time_seconds[30s]) or vector(0)",
+          "expr": "histogram_quantile(0.95, sum(rate(order_service_http_request_duration_seconds_bucket[30s])) by (le)) or avg_over_time(order_service_response_time_seconds[30s]) or vector(0)",
           "refId": "A"
         }
       ],
-      "title": "Order Service Response Time (30s avg)",
-      "description": "Turns RED if avg response time > 1s over 30s window",
+      "title": "Order Service Response Time (P95 30s)",
+      "description": "Turns RED if P95 response time > 1s over 30s window",
       "type": "stat"
     },
     {
