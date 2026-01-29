@@ -187,9 +187,87 @@ async function getAllOrders(req, res) {
   }
 }
 
+/**
+ * Recover pending orders (Schrödinger's Warehouse)
+ * POST /orders/recover
+ * Finds orders stuck in inconsistent state and fixes them
+ */
+async function recoverPendingOrders(req, res) {
+  const startTime = Date.now();
+  incrementActiveRequests();
+
+  try {
+    const result = await orderService.recoverPendingOrders();
+
+    recordHttpRequest('POST', '/orders/recover', 200, Date.now() - startTime);
+    decrementActiveRequests();
+
+    return res.status(200).json({
+      success: true,
+      message: `Recovery complete. Fixed ${result.fixed} orders, failed ${result.failed} orders.`,
+      ...result
+    });
+  } catch (error) {
+    console.error('Error in recoverPendingOrders controller:', error);
+    recordHttpRequest('POST', '/orders/recover', 500, Date.now() - startTime);
+    decrementActiveRequests();
+
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to recover pending orders',
+      message: error.message
+    });
+  }
+}
+
+/**
+ * Verify order inventory consistency
+ * GET /orders/:orderId/verify
+ * Checks if order's inventory state matches across services
+ */
+async function verifyOrder(req, res) {
+  const startTime = Date.now();
+  incrementActiveRequests();
+
+  try {
+    const { orderId } = req.params;
+
+    if (!orderId) {
+      recordHttpRequest('GET', '/orders/:id/verify', 400, Date.now() - startTime);
+      decrementActiveRequests();
+      return res.status(400).json({
+        success: false,
+        error: 'Order ID is required'
+      });
+    }
+
+    const result = await orderService.verifyOrderInventory(orderId);
+
+    recordHttpRequest('GET', '/orders/:id/verify', 200, Date.now() - startTime);
+    decrementActiveRequests();
+
+    return res.status(200).json({
+      success: true,
+      ...result
+    });
+  } catch (error) {
+    console.error('Error in verifyOrder controller:', error);
+    recordHttpRequest('GET', '/orders/:id/verify', 500, Date.now() - startTime);
+    decrementActiveRequests();
+
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to verify order',
+      message: error.message
+    });
+  }
+}
+
 module.exports = {
   createOrder,
   shipOrder,
   getOrder,
-  getAllOrders
+  getAllOrders,
+  recoverPendingOrders,
+  verifyOrder
 };

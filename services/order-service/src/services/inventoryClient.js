@@ -118,6 +118,36 @@ class InventoryClient {
   }
 
   /**
+   * Check if an order was already processed in inventory (Schrödinger recovery)
+   * @param {string} orderId - The order ID to check
+   * @returns {Promise<Object>} - Processing status
+   */
+  async checkOrderProcessed(orderId) {
+    try {
+      const response = await this.client.get(`/transactions/order/${orderId}`, { timeout: 3000 });
+      return {
+        success: true,
+        processed: response.data.found || false,
+        transactions: response.data.transactions || []
+      };
+    } catch (error) {
+      // If endpoint doesn't exist (404), assume not processed
+      if (error.response?.status === 404) {
+        return {
+          success: true,
+          processed: false,
+          transactions: []
+        };
+      }
+      return {
+        success: false,
+        error: error.message,
+        processed: false
+      };
+    }
+  }
+
+  /**
    * Get inventory health status
    * @returns {Promise<Object>} - Health status
    */

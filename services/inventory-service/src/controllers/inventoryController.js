@@ -229,11 +229,54 @@ function getStatus(req, res) {
   });
 }
 
+/**
+ * Get transactions for a specific order (Schrödinger recovery)
+ */
+async function getOrderTransactions(req, res) {
+  const startTime = Date.now();
+  incrementActiveRequests();
+
+  try {
+    const { orderId } = req.params;
+
+    if (!orderId) {
+      recordHttpRequest('GET', '/inventory/transactions/order/:orderId', 400, Date.now() - startTime);
+      decrementActiveRequests();
+      return res.status(400).json({
+        success: false,
+        error: 'Order ID is required'
+      });
+    }
+
+    const result = await inventoryService.getTransactionsByOrderId(orderId);
+
+    recordHttpRequest('GET', '/inventory/transactions/order/:orderId', 200, Date.now() - startTime);
+    decrementActiveRequests();
+
+    return res.status(200).json({
+      success: true,
+      found: result.length > 0,
+      orderId,
+      transactions: result
+    });
+  } catch (error) {
+    recordHttpRequest('GET', '/inventory/transactions/order/:orderId', 500, Date.now() - startTime);
+    decrementActiveRequests();
+
+    console.error('Error in getOrderTransactions controller:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to get order transactions'
+    });
+  }
+}
+
 module.exports = {
   deductInventory,
   checkAvailability,
   getAllProducts,
   getProduct,
   addStock,
-  getStatus
+  getStatus,
+  getOrderTransactions
 };

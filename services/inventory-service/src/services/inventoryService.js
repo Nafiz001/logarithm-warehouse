@@ -291,6 +291,30 @@ class InventoryService {
       chaos: getChaosStatus()
     };
   }
+
+  /**
+   * Get inventory transactions for a specific order (Schrödinger recovery)
+   * @param {string} orderId - Order ID to check
+   * @returns {Promise<Array>} - List of transactions for this order
+   */
+  async getTransactionsByOrderId(orderId) {
+    const client = await pool.connect();
+    
+    try {
+      const result = await client.query(
+        `SELECT t.*, p.name as product_name 
+         FROM inventory_transactions t
+         LEFT JOIN products p ON t.product_id = p.id
+         WHERE t.order_id = $1
+         ORDER BY t.created_at DESC`,
+        [orderId]
+      );
+      
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
 }
 
 module.exports = new InventoryService();

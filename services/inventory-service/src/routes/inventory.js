@@ -17,6 +17,9 @@ router.get('/products/:productId', inventoryController.getProduct);
 // POST /inventory/products/:productId/stock - Add stock to product
 router.post('/products/:productId/stock', inventoryController.addStock);
 
+// GET /inventory/transactions/order/:orderId - Check if order was processed (Schrödinger recovery)
+router.get('/transactions/order/:orderId', inventoryController.getOrderTransactions);
+
 // GET /inventory/status - Get service status (gremlin/chaos)
 router.get('/status', inventoryController.getStatus);
 

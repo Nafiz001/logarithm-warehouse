@@ -254,6 +254,105 @@ class OrderService {
       client.release();
     }
   }
+
+  /**
+   * Recover orders stuck in pending_inventory state (Schrödinger recovery)
+   * This should be called periodically or on startup
+   * @returns {Promise<Object>} - Recovery results
+   */
+  async recoverPendingOrders() {
+    const client = await pool.connect();
+    const recovered = [];
+    const failed = [];
+    
+    try {
+      // Find orders that have inventory_updated=true but status is not 'shipped'
+      // This indicates a crash happened after inventory was deducted
+      const pendingResult = await client.query(
+        `SELECT * FROM orders 
+         WHERE inventory_updated = TRUE 
+         AND status != 'shipped' 
+         AND created_at > NOW() - INTERVAL '24 hours'`
+      );
+
+      console.log(`[OrderService] Found ${pendingResult.rows.length} orders to recover`);
+
+      for (const order of pendingResult.rows) {
+        try {
+          await client.query(
+            `UPDATE orders SET status = 'shipped', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+            [order.id]
+          );
+          recovered.push(order.id);
+          console.log(`[OrderService] Recovered order: ${order.id}`);
+          incrementOrderCounter('shipped', 'recovered');
+        } catch (error) {
+          failed.push({ id: order.id, error: error.message });
+          console.error(`[OrderService] Failed to recover order ${order.id}:`, error);
+        }
+      }
+
+      return {
+        success: true,
+        recoveredCount: recovered.length,
+        failedCount: failed.length,
+        recovered,
+        failed
+      };
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Verify order status with inventory service (for Schrödinger resolution)
+   * @param {string} orderId - Order ID to verify
+   * @returns {Promise<Object>} - Verification result
+   */
+  async verifyOrderInventory(orderId) {
+    const client = await pool.connect();
+    
+    try {
+      const orderResult = await client.query(
+        'SELECT * FROM orders WHERE id = $1',
+        [orderId]
+      );
+
+      if (orderResult.rows.length === 0) {
+        return { success: false, error: 'Order not found' };
+      }
+
+      const order = orderResult.rows[0];
+
+      // Check with inventory service if this order was processed
+      const inventoryStatus = await inventoryClient.checkOrderProcessed(orderId);
+
+      if (inventoryStatus.processed && !order.inventory_updated) {
+        // Inventory was updated but our record doesn't reflect it - fix it
+        await client.query(
+          `UPDATE orders SET inventory_updated = TRUE, status = 'shipped', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+          [orderId]
+        );
+        
+        return {
+          success: true,
+          status: 'recovered',
+          message: 'Order was processed in inventory but not marked. Now fixed.',
+          order: { ...order, status: 'shipped', inventory_updated: true }
+        };
+      }
+
+      return {
+        success: true,
+        status: order.status,
+        inventoryUpdated: order.inventory_updated,
+        inventoryServiceConfirms: inventoryStatus.processed,
+        inSync: order.inventory_updated === inventoryStatus.processed
+      };
+    } finally {
+      client.release();
+    }
+  }
 }
 
 module.exports = new OrderService();
