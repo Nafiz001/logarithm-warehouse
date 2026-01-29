@@ -175,10 +175,10 @@ function getProductImage(productName) {
         return 'https://images.unsplash.com/photo-1599669454699-248893623440?w=400&h=300&fit=crop';
     }
     if (name.includes('keyboard')) {
-        return 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=400&h=300&fit=crop';
+        return 'https://icon2.cleanpng.com/20180520/lwc/kisspng-computer-keyboard-cooler-master-masterkeys-pro-l-m-5b014e75338806.2634158315268122772111.jpg';
     }
     if (name.includes('mouse')) {
-        return 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=300&fit=crop';
+        return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTX4fitkifC9A9gcbsOgbBn_GSySjXcRpF3VQ&s';
     }
     if (name.includes('laptop') || name.includes('notebook')) {
         return 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=300&fit=crop';
