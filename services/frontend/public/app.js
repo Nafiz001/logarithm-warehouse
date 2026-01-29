@@ -156,6 +156,47 @@ async function fetchProducts() {
 }
 
 /**
+ * Get product image URL based on product name
+ */
+function getProductImage(productName) {
+    const name = productName.toLowerCase();
+    
+    // Map product names to Unsplash images
+    if (name.includes('monitor') || name.includes('display')) {
+        return 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400&h=300&fit=crop';
+    }
+    if (name.includes('chair')) {
+        return 'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=400&h=300&fit=crop';
+    }
+    if (name.includes('console') || name.includes('gaming')) {
+        return 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400&h=300&fit=crop';
+    }
+    if (name.includes('headset') || name.includes('headphone')) {
+        return 'https://images.unsplash.com/photo-1599669454699-248893623440?w=400&h=300&fit=crop';
+    }
+    if (name.includes('keyboard')) {
+        return 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=400&h=300&fit=crop';
+    }
+    if (name.includes('mouse')) {
+        return 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=300&fit=crop';
+    }
+    if (name.includes('laptop') || name.includes('notebook')) {
+        return 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=300&fit=crop';
+    }
+    if (name.includes('phone') || name.includes('mobile')) {
+        return 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop';
+    }
+    if (name.includes('speaker')) {
+        return 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400&h=300&fit=crop';
+    }
+    if (name.includes('controller') || name.includes('gamepad')) {
+        return 'https://images.unsplash.com/photo-1592840496694-26d035b52b48?w=400&h=300&fit=crop';
+    }
+    // Default product image
+    return 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=400&h=300&fit=crop';
+}
+
+/**
  * Load and display products
  */
 async function loadProducts() {
@@ -175,7 +216,10 @@ async function loadProducts() {
     grid.innerHTML = products.map(product => `
         <div class="group bg-white rounded-3xl p-4 border-2 border-slate-100 hover:border-black transition-all duration-300 hover:shadow-neubrutalism">
             <div class="aspect-[4/3] bg-slate-50 rounded-2xl flex items-center justify-center mb-4 relative overflow-hidden">
-                <span class="material-icons-round text-6xl text-slate-200 group-hover:scale-110 transition-transform duration-500">inventory_2</span>
+                <img src="${getProductImage(product.name)}" alt="${product.name}" 
+                    class="w-full h-full object-cover rounded-2xl group-hover:scale-110 transition-transform duration-500"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <span class="material-icons-round text-6xl text-slate-200 hidden items-center justify-center absolute inset-0">inventory_2</span>
                 <div class="absolute top-3 right-3 ${product.stock_quantity > 50 ? 'bg-white border border-slate-100' : product.stock_quantity > 10 ? 'bg-accent' : 'bg-red-500 text-white'} px-2 py-1 rounded-lg text-xs font-bold shadow-sm">
                     ${product.stock_quantity > 10 ? product.stock_quantity + ' LEFT' : 'LOW STOCK'}
                 </div>
