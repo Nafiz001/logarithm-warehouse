@@ -19,23 +19,7 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "green",
-                  "index": 0,
-                  "text": "HEALTHY"
-                },
-                "1": {
-                  "color": "red",
-                  "index": 1,
-                  "text": "ALERT"
-                }
-              },
-              "type": "value"
-            }
-          ],
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -49,7 +33,8 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "s",
+          "noValue": "0"
         },
         "overrides": []
       },
@@ -70,7 +55,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "value_and_name"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -79,11 +64,11 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "avg_over_time(order_service_response_time_seconds[30s]) > 1",
+          "expr": "avg_over_time(order_service_response_time_seconds[30s]) or vector(0)",
           "refId": "A"
         }
       ],
-      "title": "Order Service Response Time Alert",
+      "title": "Order Service Response Time (30s avg)",
       "description": "Turns RED if avg response time > 1s over 30s window",
       "type": "stat"
     },
@@ -126,7 +111,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "order_service_response_time_seconds",
+          "expr": "order_service_response_time_seconds or vector(0)",
           "refId": "A"
         }
       ],
@@ -172,7 +157,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "order_service_active_requests",
+          "expr": "order_service_active_requests or vector(0)",
           "refId": "A"
         }
       ],
@@ -218,7 +203,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "inventory_service_active_requests",
+          "expr": "inventory_service_active_requests or vector(0)",
           "refId": "A"
         }
       ],
