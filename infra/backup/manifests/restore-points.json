@@ -1,0 +1,27 @@
+{
+  "restore_points": [],
+  "last_api_call": null,
+  "backup_strategy": {
+    "name": "WAL-based Point-in-Time Recovery",
+    "daily_backup_time": "03:00 UTC",
+    "wal_archive": "continuous",
+    "wal_bundle": "hourly",
+    "retention": {
+      "base_backups": "7 days",
+      "wal_bundles": "48 hours",
+      "wal_files": "1 hour (then bundled)"
+    },
+    "api_calls_per_day": 1,
+    "restore_granularity": "any point in time"
+  },
+  "databases": [
+    {
+      "name": "order-db",
+      "connection": "postgres://orderuser:orderpass@order-db:5432/orders"
+    },
+    {
+      "name": "inventory-db", 
+      "connection": "postgres://inventoryuser:inventorypass@inventory-db:5432/inventory"
+    }
+  ]
+}

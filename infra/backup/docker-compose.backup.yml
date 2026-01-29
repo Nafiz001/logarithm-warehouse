@@ -1,0 +1,82 @@
+# ============================================================
+# Docker Compose Override for Backup-Enabled PostgreSQL
+# 
+# Usage: docker-compose -f docker-compose.yml -f infra/backup/docker-compose.backup.yml up -d
+# ============================================================
+
+services:
+  # Order Database with WAL archiving
+  order-db:
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+      - backup-data:/backup
+      - ./scripts:/backup-scripts:ro
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: orderuser
+      POSTGRES_PASSWORD: orderpass
+      # Enable WAL archiving
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    command: >
+      postgres
+      -c wal_level=replica
+      -c archive_mode=on
+      -c archive_command='DB_NAME=order-db /backup-scripts/wal-archive.sh %p %f'
+      -c max_wal_senders=3
+      -c wal_keep_size=256MB
+
+  # Inventory Database with WAL archiving  
+  inventory-db:
+    volumes:
+      - inventory-db-data:/var/lib/postgresql/data
+      - backup-data:/backup
+      - ./scripts:/backup-scripts:ro
+    environment:
+      POSTGRES_DB: inventory
+      POSTGRES_USER: inventoryuser
+      POSTGRES_PASSWORD: inventorypass
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    command: >
+      postgres
+      -c wal_level=replica
+      -c archive_mode=on
+      -c archive_command='DB_NAME=inventory-db /backup-scripts/wal-archive.sh %p %f'
+      -c max_wal_senders=3
+      -c wal_keep_size=256MB
+
+  # Backup scheduler (runs cron jobs)
+  backup-scheduler:
+    image: alpine:latest
+    container_name: backup-scheduler
+    volumes:
+      - backup-data:/backup
+      - ./scripts:/scripts:ro
+    environment:
+      - TZ=UTC
+    entrypoint: /bin/sh
+    command: |
+      -c '
+        # Install required tools
+        apk add --no-cache bash postgresql-client gzip tar jq curl
+        
+        # Create cron jobs
+        echo "0 3 * * * /scripts/daily-backup.sh >> /backup/logs/cron.log 2>&1" > /etc/crontabs/root
+        echo "0 * * * * /scripts/hourly-bundle.sh >> /backup/logs/cron.log 2>&1" >> /etc/crontabs/root
+        
+        # Start cron
+        crond -f -l 2
+      '
+    depends_on:
+      - order-db
+      - inventory-db
+    networks:
+      - warehouse-network
+    restart: unless-stopped
+
+volumes:
+  backup-data:
+    driver: local
+
+networks:
+  warehouse-network:
+    external: true
