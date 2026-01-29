@@ -5,11 +5,11 @@ WORKDIR /app
 # Install wget for healthcheck
 RUN apk add --no-cache wget
 
-# Copy package files
-COPY package*.json ./
+# Copy package files (including lock file for reproducible builds)
+COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm install --omit=dev
+# Install dependencies using ci for reproducible builds
+RUN npm ci --only=production
 
 # Copy source code
 COPY src/ ./src/

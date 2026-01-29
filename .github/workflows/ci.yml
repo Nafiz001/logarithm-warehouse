@@ -18,14 +18,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            services/order-service/package-lock.json
+            services/inventory-service/package-lock.json
 
       - name: Install Order Service dependencies
         working-directory: services/order-service
-        run: npm install
+        run: npm ci
 
       - name: Install Inventory Service dependencies
         working-directory: services/inventory-service
-        run: npm install
+        run: npm ci
 
       - name: Lint Order Service
         working-directory: services/order-service
