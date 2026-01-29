@@ -52,12 +52,12 @@ function formatDate(dateString) {
  */
 function getStatusBadge(status) {
     const badges = {
-        pending: 'bg-yellow-100 text-yellow-800',
-        confirmed: 'bg-blue-100 text-blue-800',
-        shipped: 'bg-green-100 text-green-800',
-        cancelled: 'bg-red-100 text-red-800'
+        pending: 'bg-slate-100 text-slate-800 border-2 border-slate-300',
+        confirmed: 'bg-blue-100 text-blue-800 border-2 border-blue-300',
+        shipped: 'bg-accent text-black border-2 border-black',
+        cancelled: 'bg-red-100 text-red-800 border-2 border-red-300'
     };
-    return `<span class="px-2 py-1 rounded-full text-xs font-medium ${badges[status] || 'bg-gray-100 text-gray-800'}">${status}</span>`;
+    return `<span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${badges[status] || 'bg-slate-100 text-slate-800'}">${status}</span>`;
 }
 
 /**
@@ -173,17 +173,20 @@ async function loadProducts() {
     
     // Update products grid
     grid.innerHTML = products.map(product => `
-        <div class="bg-white rounded-lg shadow-md p-4 card-hover transition-all duration-200">
-            <div class="flex items-center justify-between mb-2">
-                <h4 class="font-semibold text-gray-800 text-sm">${product.name}</h4>
-                <span class="text-lg font-bold text-blue-600">${formatCurrency(product.price)}</span>
+        <div class="group bg-white rounded-3xl p-4 border-2 border-slate-100 hover:border-black transition-all duration-300 hover:shadow-neubrutalism">
+            <div class="aspect-[4/3] bg-slate-50 rounded-2xl flex items-center justify-center mb-4 relative overflow-hidden">
+                <span class="material-icons-round text-6xl text-slate-200 group-hover:scale-110 transition-transform duration-500">inventory_2</span>
+                <div class="absolute top-3 right-3 ${product.stock_quantity > 50 ? 'bg-white border border-slate-100' : product.stock_quantity > 10 ? 'bg-accent' : 'bg-red-500 text-white'} px-2 py-1 rounded-lg text-xs font-bold shadow-sm">
+                    ${product.stock_quantity > 10 ? product.stock_quantity + ' LEFT' : 'LOW STOCK'}
+                </div>
             </div>
-            <p class="text-xs text-gray-500 mb-3">${product.description || 'No description'}</p>
-            <div class="flex items-center justify-between">
-                <span class="text-xs text-gray-400">ID: ${product.id.substring(0, 8)}...</span>
-                <span class="px-2 py-1 rounded-full text-xs font-medium ${product.stock_quantity > 50 ? 'bg-green-100 text-green-800' : product.stock_quantity > 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">
-                    Stock: ${product.stock_quantity}
-                </span>
+            <div class="px-1">
+                <h4 class="font-bold text-lg leading-tight mb-1">${product.name}</h4>
+                <p class="text-xs text-slate-400 mb-2 line-clamp-1">${product.description || 'No description'}</p>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="font-mono text-sm text-slate-400">ID: ${product.id.substring(0, 8)}</span>
+                    <span class="font-display font-bold text-xl">${formatCurrency(product.price)}</span>
+                </div>
             </div>
         </div>
     `).join('');
@@ -222,9 +225,9 @@ async function loadOrders() {
     if (orders.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                    <i class="fas fa-inbox text-4xl mb-2"></i>
-                    <p>No orders found. Create your first order above!</p>
+                <td colspan="6" class="px-6 py-8 text-center text-slate-500">
+                    <span class="material-icons-round text-6xl text-slate-200 mb-2 block">inbox</span>
+                    <p class="font-medium">No orders found. Create your first order!</p>
                 </td>
             </tr>
         `;
@@ -232,33 +235,31 @@ async function loadOrders() {
     }
     
     tbody.innerHTML = orders.map(order => `
-        <tr class="hover:bg-gray-50 fade-in">
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">${order.id.substring(0, 8)}...</div>
-                <div class="text-xs text-gray-500">${formatDate(order.created_at)}</div>
+        <tr class="group hover:bg-slate-50 transition-colors fade-in">
+            <td class="px-6 py-5 pl-8">
+                <div class="font-mono font-bold">#${order.id.substring(0, 7)}</div>
+                <div class="text-xs text-slate-400 mt-1">${formatDate(order.created_at)}</div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">${order.customer_name}</div>
-                <div class="text-xs text-gray-500">${order.customer_email || 'No email'}</div>
+            <td class="px-6 py-5">
+                <div class="font-bold">${order.customer_name}</div>
+                <div class="text-xs text-slate-400">${order.customer_email || 'No email'}</div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">${formatCurrency(order.total_amount)}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-6 py-5 font-bold font-display text-lg">${formatCurrency(order.total_amount)}</td>
+            <td class="px-6 py-5">
                 ${getStatusBadge(order.status)}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-6 py-5">
                 ${order.inventory_updated 
-                    ? '<span class="text-green-600"><i class="fas fa-check mr-1"></i>Updated</span>' 
-                    : '<span class="text-gray-400"><i class="fas fa-clock mr-1"></i>Pending</span>'}
+                    ? '<span class="text-green-600 font-medium"><i class="fas fa-check mr-1"></i>Updated</span>' 
+                    : '<span class="text-slate-400"><i class="fas fa-clock mr-1"></i>Pending</span>'}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-6 py-5 text-right">
                 ${order.status === 'pending' || order.status === 'confirmed' ? `
-                    <button onclick="shipOrder('${order.id}')" class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors">
+                    <button onclick="shipOrder('${order.id}')" class="px-4 py-2 bg-black text-white text-sm rounded-xl font-bold hover:bg-accent hover:text-black transition-all">
                         <i class="fas fa-truck mr-1"></i>Ship
                     </button>
                 ` : `
-                    <span class="text-gray-400 text-sm"><i class="fas fa-check mr-1"></i>Completed</span>
+                    <span class="text-slate-400 text-sm font-medium"><i class="fas fa-check mr-1"></i>Completed</span>
                 `}
             </td>
         </tr>
@@ -351,32 +352,64 @@ async function loadChaosStatus() {
         const container = document.getElementById('chaos-status');
         
         container.innerHTML = `
-            <div class="space-y-3">
-                <h4 class="font-semibold text-gray-700">
-                    <i class="fas fa-clock mr-2 text-purple-500"></i>Gremlin Latency
-                </h4>
-                <div class="pl-6 space-y-2 text-sm">
-                    <p><strong>Enabled:</strong> ${data.gremlin?.enabled ? '<span class="text-green-600">Yes</span>' : '<span class="text-gray-400">No</span>'}</p>
-                    <p><strong>Delay:</strong> ${data.gremlin?.delayMs || 0}ms every ${data.gremlin?.everyNthRequest || 'N/A'} requests</p>
-                    <p><strong>Next Delay In:</strong> ${data.gremlin?.nextDelayIn || 'N/A'} requests</p>
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="font-bold flex items-center gap-2">
+                        <span class="material-icons-round text-purple-400">schedule</span>
+                        Gremlin Latency
+                    </span>
+                    <span class="text-xs font-mono ${data.gremlin?.enabled ? 'text-accent' : 'text-slate-500'}">${data.gremlin?.enabled ? 'ACTIVE' : 'DISABLED'}</span>
+                </div>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Delay Amount</span>
+                        <span class="font-mono text-accent">${data.gremlin?.delayMs || 0}ms</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Every Nth Request</span>
+                        <span class="font-mono">${data.gremlin?.everyNthRequest || 'N/A'}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Next Delay In</span>
+                        <span class="font-mono">${data.gremlin?.nextDelayIn || 'N/A'} requests</span>
+                    </div>
                 </div>
             </div>
-            <div class="space-y-3">
-                <h4 class="font-semibold text-gray-700">
-                    <i class="fas fa-bomb mr-2 text-red-500"></i>Chaos Events
-                </h4>
-                <div class="pl-6 space-y-2 text-sm">
-                    <p><strong>Enabled:</strong> ${data.chaos?.enabled ? '<span class="text-green-600">Yes</span>' : '<span class="text-gray-400">No</span>'}</p>
-                    <p><strong>Crash Probability:</strong> ${((data.chaos?.crashProbability || 0) * 100).toFixed(0)}%</p>
-                    <p><strong>Total Chaos Events:</strong> ${data.chaos?.totalChaosEvents || 0}</p>
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="font-bold flex items-center gap-2">
+                        <span class="material-icons-round text-red-400">warning</span>
+                        Chaos Events
+                    </span>
+                    <span class="text-xs font-mono ${data.chaos?.enabled ? 'text-accent' : 'text-slate-500'}">${data.chaos?.enabled ? 'ACTIVE' : 'DISABLED'}</span>
+                </div>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Crash Probability</span>
+                        <span class="font-mono text-red-400">${((data.chaos?.crashProbability || 0) * 100).toFixed(0)}%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Total Chaos Events</span>
+                        <span class="font-mono">${data.chaos?.totalChaosEvents || 0}</span>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between text-xs mb-2">
+                            <span class="text-slate-500">Resilience Score</span>
+                            <span>${100 - ((data.chaos?.crashProbability || 0) * 100)}%</span>
+                        </div>
+                        <div class="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-accent" style="width: ${100 - ((data.chaos?.crashProbability || 0) * 100)}%"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
     } catch (error) {
         console.error('Failed to load chaos status:', error);
         document.getElementById('chaos-status').innerHTML = `
-            <div class="text-center text-gray-500">
-                <p>Unable to load chaos status</p>
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-sm col-span-2 text-center">
+                <span class="material-icons-round text-4xl text-slate-500 mb-2">error_outline</span>
+                <p class="text-slate-400">Unable to load chaos status</p>
             </div>
         `;
     }
@@ -520,11 +553,11 @@ function updateTimeoutUI(timeoutMs) {
     const btn6s = document.getElementById('btn-6s');
     
     if (timeoutMs === 3000) {
-        btn3s.className = 'px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium';
-        btn6s.className = 'px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium';
+        btn3s.className = 'px-6 py-3 bg-black text-white rounded-xl hover:bg-accent hover:text-black transition-all font-bold border-2 border-black';
+        btn6s.className = 'px-6 py-3 bg-slate-100 text-black rounded-xl hover:bg-slate-200 transition-all font-bold border-2 border-transparent';
     } else {
-        btn3s.className = 'px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium';
-        btn6s.className = 'px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium';
+        btn3s.className = 'px-6 py-3 bg-slate-100 text-black rounded-xl hover:bg-slate-200 transition-all font-bold border-2 border-transparent';
+        btn6s.className = 'px-6 py-3 bg-black text-white rounded-xl hover:bg-accent hover:text-black transition-all font-bold border-2 border-black';
     }
 }
 
