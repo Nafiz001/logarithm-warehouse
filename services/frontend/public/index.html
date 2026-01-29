@@ -94,9 +94,10 @@
                 </a>
                 <div class="pt-8 mt-4 border-t-2 border-slate-100 hidden lg:block">
                     <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Engineering</p>
-                    <a href="#chaos-section" class="flex items-center gap-4 px-4 py-4 text-slate-500 hover:bg-black hover:text-white rounded-2xl font-medium transition-all group">
-                        <span class="material-icons-round group-hover:text-accent">psychology</span>
+                    <a href="/chaos.html" class="flex items-center gap-4 px-4 py-4 text-slate-500 hover:bg-danger hover:text-white rounded-2xl font-medium transition-all group">
+                        <span class="material-icons-round group-hover:text-white">psychology</span>
                         <span>Chaos Lab</span>
+                        <span class="ml-auto bg-danger text-white text-xs px-2 py-1 rounded-full font-bold">NEW</span>
                     </a>
                 </div>
             </nav>
@@ -313,37 +314,6 @@
                     </div>
                 </section>
 
-                <!-- Timeout Configuration -->
-                <section class="mb-10">
-                    <div class="bg-white border-2 border-black rounded-3xl p-8 shadow-neubrutalism">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-12 h-12 bg-accent rounded-xl flex items-center justify-center">
-                                <span class="material-icons-round text-black">timer</span>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-display font-bold">Timeout Configuration</h3>
-                                <p class="text-slate-500 text-sm">Demo: Control inventory call timeout</p>
-                            </div>
-                        </div>
-                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                            <div>
-                                <p class="text-black mb-2">Current Inventory Call Timeout: <span id="current-timeout" class="font-bold text-xl font-display">Loading...</span></p>
-                                <p class="text-sm text-slate-500">Gremlin delays every 5th request by 5 seconds. Set timeout to 6s to capture the full delay in metrics.</p>
-                            </div>
-                            <div class="flex gap-3">
-                                <button onclick="setTimeoutValue(3000)" id="btn-3s"
-                                    class="px-6 py-3 bg-slate-100 text-black rounded-xl hover:bg-slate-200 transition-all font-bold border-2 border-transparent">
-                                    3s (Default)
-                                </button>
-                                <button onclick="setTimeoutValue(6000)" id="btn-6s"
-                                    class="px-6 py-3 bg-black text-white rounded-xl hover:bg-accent hover:text-black transition-all font-bold border-2 border-black">
-                                    6s (Capture Gremlin)
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
                 <!-- Footer -->
                 <footer class="mt-12 text-center text-xs text-slate-400 font-medium pb-8">
                     Logarithm Warehouse © 2026 | BUET CSE Fest - Microservices & DevOps Hackathon
@@ -360,6 +330,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>

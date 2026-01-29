@@ -537,8 +537,7 @@ async function init() {
         loadHealthStatus(),
         loadProducts(),
         loadOrders(),
-        loadChaosStatus(),
-        loadTimeoutConfig()
+        loadChaosStatus()
     ]);
     
     // Auto-refresh health status every 30 seconds

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Chaos Lab | Logarithm Warehouse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#000000",
+                        accent: "#FFD600",
+                        danger: "#EF4444",
+                        success: "#10B981",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        display: ["Space Grotesk", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                    boxShadow: {
+                        'neubrutalism': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neubrutalism-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+                        'neubrutalism-red': '4px 4px 0px 0px rgba(239,68,68,1)',
+                    }
+                },
+            },
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, .font-display { font-family: 'Space Grotesk', sans-serif; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #000; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .pulse-red { animation: pulseRed 1s infinite; }
+        @keyframes pulseRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 50% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } }
+        .pulse-green { animation: pulseGreen 2s infinite; }
+        @keyframes pulseGreen { 0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } }
+        .log-entry { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-20 lg:w-72 border-r border-white/10 bg-black flex flex-col fixed h-full z-30">
+            <div class="p-6 lg:p-8 flex items-center gap-4">
+                <div class="w-12 h-12 bg-accent rounded-xl flex items-center justify-center text-black shrink-0 shadow-neubrutalism-sm">
+                    <span class="material-icons-round text-2xl">science</span>
+                </div>
+                <div class="hidden lg:block">
+                    <h1 class="font-display font-bold text-2xl leading-none tracking-tight text-white">CHAOS LAB</h1>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-4 lg:px-6 space-y-3 mt-4">
+                <a href="/" class="flex items-center gap-4 px-4 py-4 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl font-medium transition-all">
+                    <span class="material-icons-round">dashboard</span>
+                    <span class="hidden lg:block">Dashboard</span>
+                </a>
+                <a href="/chaos.html" class="flex items-center gap-4 px-4 py-4 bg-danger text-white rounded-2xl font-bold shadow-neubrutalism-red transition-transform active:translate-y-0.5">
+                    <span class="material-icons-round">bolt</span>
+                    <span class="hidden lg:block">Chaos Lab</span>
+                </a>
+            </nav>
+
+            <div class="p-6 border-t border-white/10 hidden lg:block">
+                <div class="bg-white/5 p-4 rounded-2xl">
+                    <p class="text-xs text-slate-400 mb-2">Grafana Dashboard</p>
+                    <a href="http://40.81.240.99:3000" target="_blank" class="text-accent hover:underline font-mono text-sm">
+                        Open Grafana →
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-20 lg:ml-72 p-8">
+            <!-- Header -->
+            <header class="mb-8">
+                <div class="flex items-center gap-4 mb-2">
+                    <span class="material-icons-round text-danger text-4xl">warning</span>
+                    <h1 class="text-4xl font-display font-black tracking-tight">Chaos Engineering Lab</h1>
+                </div>
+                <p class="text-slate-400">Trigger Grafana alerts by simulating high latency scenarios</p>
+            </header>
+
+            <!-- Alert Status Panel -->
+            <section class="mb-8">
+                <div id="alert-status" class="bg-success/20 border-2 border-success rounded-3xl p-8 transition-all duration-500">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div id="alert-indicator" class="w-16 h-16 bg-success rounded-full flex items-center justify-center pulse-green">
+                                <span class="material-icons-round text-3xl text-white">check_circle</span>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-display font-bold" id="alert-title">System Normal</h2>
+                                <p class="text-slate-400" id="alert-subtitle">Average response time is below 1 second</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-slate-400">Current Timeout</p>
+                            <p id="current-timeout" class="text-3xl font-display font-bold text-accent">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Control Panel -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Timeout Control -->
+                <div class="bg-white/5 border border-white/10 rounded-3xl p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-accent rounded-xl flex items-center justify-center">
+                            <span class="material-icons-round text-black">timer</span>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-display font-bold">Timeout Control</h3>
+                            <p class="text-slate-400 text-sm">Set Order Service timeout for Inventory calls</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <button onclick="setTimeoutValue(3000)" id="btn-3s"
+                            class="px-6 py-4 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-all font-bold border-2 border-transparent text-center">
+                            <span class="block text-2xl font-display">3s</span>
+                            <span class="text-xs text-slate-400">Timeouts before gremlin</span>
+                        </button>
+                        <button onclick="setTimeoutValue(6000)" id="btn-6s"
+                            class="px-6 py-4 bg-accent text-black rounded-xl hover:bg-yellow-400 transition-all font-bold border-2 border-accent text-center shadow-neubrutalism-sm">
+                            <span class="block text-2xl font-display">6s</span>
+                            <span class="text-xs text-black/60">Captures gremlin delay</span>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500">
+                        <span class="material-icons-round text-sm align-middle">info</span>
+                        Gremlin delays every 5th request by 5 seconds. Set to 6s to capture full delay.
+                    </p>
+                </div>
+
+                <!-- Bulk Actions -->
+                <div class="bg-white/5 border border-white/10 rounded-3xl p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-danger rounded-xl flex items-center justify-center">
+                            <span class="material-icons-round text-white">flash_on</span>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-display font-bold">Trigger Red Alert</h3>
+                            <p class="text-slate-400 text-sm">Create & ship 10 orders to trigger high latency</p>
+                        </div>
+                    </div>
+                    <button onclick="triggerRedAlert()" id="btn-trigger"
+                        class="w-full px-6 py-4 bg-danger text-white rounded-xl hover:bg-red-600 transition-all font-bold border-2 border-danger shadow-neubrutalism-red active:translate-y-1 active:shadow-none mb-4">
+                        <span class="material-icons-round align-middle mr-2">rocket_launch</span>
+                        <span id="trigger-btn-text">Create & Ship 10 Orders</span>
+                    </button>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div class="bg-white/5 p-2 rounded-lg">
+                            <p class="text-slate-400">Orders Created</p>
+                            <p id="stat-created" class="text-xl font-bold font-mono">0</p>
+                        </div>
+                        <div class="bg-white/5 p-2 rounded-lg">
+                            <p class="text-slate-400">Shipped</p>
+                            <p id="stat-shipped" class="text-xl font-bold font-mono text-success">0</p>
+                        </div>
+                        <div class="bg-white/5 p-2 rounded-lg">
+                            <p class="text-slate-400">Failed/Timeout</p>
+                            <p id="stat-failed" class="text-xl font-bold font-mono text-danger">0</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chaos Scenarios -->
+            <section class="mb-8">
+                <h3 class="text-xl font-display font-bold mb-4 flex items-center gap-2">
+                    <span class="material-icons-round text-accent">science</span>
+                    Chaos Scenarios
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Scenario 1: Gremlin Latency -->
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-accent transition-all">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="material-icons-round text-purple-400 text-2xl">schedule</span>
+                            <h4 class="font-bold">Gremlin Latency</h4>
+                        </div>
+                        <p class="text-slate-400 text-sm mb-4">Every 5th request to Inventory Service is delayed by 5 seconds.</p>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-500">Status:</span>
+                            <span id="gremlin-status" class="text-success font-mono">ACTIVE</span>
+                        </div>
+                    </div>
+
+                    <!-- Scenario 2: Schrödinger Crash -->
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-danger transition-all">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="material-icons-round text-red-400 text-2xl">dangerous</span>
+                            <h4 class="font-bold">Schrödinger's Crash</h4>
+                        </div>
+                        <p class="text-slate-400 text-sm mb-4">10% chance of crash after DB commit, before HTTP response.</p>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-500">Status:</span>
+                            <span id="chaos-status-indicator" class="text-success font-mono">ACTIVE</span>
+                        </div>
+                    </div>
+
+                    <!-- Scenario 3: Circuit Breaker -->
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-blue-400 transition-all">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="material-icons-round text-blue-400 text-2xl">offline_bolt</span>
+                            <h4 class="font-bold">Circuit Breaker</h4>
+                        </div>
+                        <p class="text-slate-400 text-sm mb-4">Opens after 50% failures, blocks calls for 30 seconds.</p>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-500">Status:</span>
+                            <span id="circuit-status" class="text-success font-mono">CLOSED</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Live Log -->
+            <section>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-display font-bold flex items-center gap-2">
+                        <span class="material-icons-round text-accent">terminal</span>
+                        Live Activity Log
+                    </h3>
+                    <button onclick="clearLog()" class="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all text-sm">
+                        <span class="material-icons-round text-sm align-middle mr-1">delete</span>
+                        Clear
+                    </button>
+                </div>
+                <div id="activity-log" class="bg-white/5 border border-white/10 rounded-2xl p-4 h-64 overflow-y-auto font-mono text-sm">
+                    <div class="text-slate-500 text-center py-8">
+                        Activity log will appear here when you trigger chaos scenarios...
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="mt-12 text-center text-xs text-slate-500">
+                Logarithm Warehouse © 2026 | Chaos Engineering Lab
+            </footer>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 hidden z-50">
+        <div class="bg-white text-black px-6 py-4 rounded-2xl shadow-lg flex items-center space-x-3 border-2 border-black">
+            <i id="toast-icon" class="fas fa-info-circle"></i>
+            <span id="toast-message" class="font-medium"></span>
+        </div>
+    </div>
+
+    <script src="chaos.js?v=1"></script>
+</body>
+</html>
