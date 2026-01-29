@@ -2,7 +2,10 @@ const axios = require('axios');
 const { recordInventoryCallMetrics } = require('../utils/metrics');
 
 const INVENTORY_SERVICE_URL = process.env.INVENTORY_SERVICE_URL || 'http://nginx:80/inventory';
-const REQUEST_TIMEOUT_MS = parseInt(process.env.REQUEST_TIMEOUT_MS) || 3000;
+const DEFAULT_TIMEOUT_MS = parseInt(process.env.REQUEST_TIMEOUT_MS) || 3000;
+
+// Dynamic timeout - can be changed at runtime
+let currentTimeoutMs = DEFAULT_TIMEOUT_MS;
 
 /**
  * Inventory Service Client with timeout and retry handling
@@ -12,11 +15,29 @@ class InventoryClient {
   constructor() {
     this.client = axios.create({
       baseURL: INVENTORY_SERVICE_URL,
-      timeout: REQUEST_TIMEOUT_MS,
+      timeout: currentTimeoutMs,
       headers: {
         'Content-Type': 'application/json'
       }
     });
+  }
+
+  /**
+   * Update the timeout value dynamically
+   * @param {number} timeoutMs - New timeout in milliseconds
+   */
+  setTimeout(timeoutMs) {
+    currentTimeoutMs = timeoutMs;
+    this.client.defaults.timeout = timeoutMs;
+    console.log(`[InventoryClient] Timeout updated to ${timeoutMs}ms`);
+  }
+
+  /**
+   * Get current timeout value
+   * @returns {number} Current timeout in milliseconds
+   */
+  getTimeout() {
+    return currentTimeoutMs;
   }
 
   /**
@@ -52,7 +73,7 @@ class InventoryClient {
       recordInventoryCallMetrics(Date.now() - startTime, false, timedOut);
 
       if (timedOut) {
-        console.warn(`[InventoryClient] Timeout after ${REQUEST_TIMEOUT_MS}ms for order ${orderId}`);
+        console.warn(`[InventoryClient] Timeout after ${currentTimeoutMs}ms for order ${orderId}`);
         return {
           success: false,
           timedOut: true,

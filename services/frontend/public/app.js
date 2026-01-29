@@ -460,7 +460,8 @@ async function init() {
         loadHealthStatus(),
         loadProducts(),
         loadOrders(),
-        loadChaosStatus()
+        loadChaosStatus(),
+        loadTimeoutConfig()
     ]);
     
     // Auto-refresh health status every 30 seconds
@@ -470,6 +471,61 @@ async function init() {
     setInterval(loadChaosStatus, 10000);
     
     console.log('Dashboard initialized!');
+}
+
+/**
+ * Load current timeout configuration
+ */
+async function loadTimeoutConfig() {
+    try {
+        const response = await fetch(`${API_BASE}/orders/config/timeout`);
+        if (!response.ok) throw new Error('Failed to load timeout config');
+        const data = await response.json();
+        updateTimeoutUI(data.currentTimeoutMs);
+    } catch (error) {
+        console.error('Failed to load timeout config:', error);
+        document.getElementById('current-timeout').textContent = 'Error loading';
+    }
+}
+
+/**
+ * Set timeout value
+ */
+async function setTimeoutValue(timeoutMs) {
+    try {
+        const response = await fetch(`${API_BASE}/orders/config/timeout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ timeoutMs })
+        });
+        
+        if (!response.ok) throw new Error('Failed to update timeout');
+        const data = await response.json();
+        
+        updateTimeoutUI(data.currentTimeoutMs);
+        showToast(`Timeout updated to ${timeoutMs / 1000}s`, 'success');
+    } catch (error) {
+        console.error('Failed to update timeout:', error);
+        showToast('Failed to update timeout', 'error');
+    }
+}
+
+/**
+ * Update timeout UI
+ */
+function updateTimeoutUI(timeoutMs) {
+    document.getElementById('current-timeout').textContent = `${timeoutMs / 1000}s`;
+    
+    const btn3s = document.getElementById('btn-3s');
+    const btn6s = document.getElementById('btn-6s');
+    
+    if (timeoutMs === 3000) {
+        btn3s.className = 'px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium';
+        btn6s.className = 'px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium';
+    } else {
+        btn3s.className = 'px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium';
+        btn6s.className = 'px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium';
+    }
 }
 
 // Start the app

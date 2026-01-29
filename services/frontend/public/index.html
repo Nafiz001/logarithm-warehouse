@@ -202,6 +202,31 @@
                 </div>
             </div>
         </section>
+
+        <!-- Timeout Configuration (Demo) -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-clock mr-2 text-indigo-500"></i>Timeout Configuration (Demo)
+            </h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-700 mb-2">Current Inventory Call Timeout: <span id="current-timeout" class="font-bold text-indigo-600">Loading...</span></p>
+                        <p class="text-sm text-gray-500">Gremlin delays every 5th request by 5 seconds. Set timeout to 6s to capture the full delay in metrics.</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="setTimeoutValue(3000)" id="btn-3s"
+                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                            3s (Default)
+                        </button>
+                        <button onclick="setTimeoutValue(6000)" id="btn-6s"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                            6s (Capture Gremlin)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- Footer -->

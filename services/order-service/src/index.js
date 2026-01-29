@@ -6,6 +6,7 @@ const { initializeDatabase } = require('./db/init');
 const { setupMetrics } = require('./utils/metrics');
 const orderRoutes = require('./routes/orders');
 const healthRoutes = require('./routes/health');
+const inventoryClient = require('./services/inventoryClient');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,6 +22,30 @@ setupMetrics();
 // Routes
 app.use('/orders', orderRoutes);
 app.use('/health', healthRoutes);
+
+// Timeout configuration endpoint (for demo purposes)
+app.get('/config/timeout', (req, res) => {
+  res.json({
+    success: true,
+    currentTimeoutMs: inventoryClient.getTimeout()
+  });
+});
+
+app.post('/config/timeout', (req, res) => {
+  const { timeoutMs } = req.body;
+  if (!timeoutMs || typeof timeoutMs !== 'number' || timeoutMs < 1000 || timeoutMs > 30000) {
+    return res.status(400).json({
+      success: false,
+      error: 'timeoutMs must be a number between 1000 and 30000'
+    });
+  }
+  inventoryClient.setTimeout(timeoutMs);
+  res.json({
+    success: true,
+    message: `Timeout updated to ${timeoutMs}ms`,
+    currentTimeoutMs: inventoryClient.getTimeout()
+  });
+});
 
 // Prometheus metrics endpoint
 app.get('/metrics', async (req, res) => {
