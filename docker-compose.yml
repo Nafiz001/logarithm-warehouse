@@ -1,0 +1,160 @@
+services:
+  # ============================================
+  # DATABASES
+  # ============================================
+  order-db:
+    image: postgres:15-alpine
+    container_name: order-db
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: orderuser
+      POSTGRES_PASSWORD: orderpass
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orderuser -d orders"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - warehouse-network
+
+  inventory-db:
+    image: postgres:15-alpine
+    container_name: inventory-db
+    environment:
+      POSTGRES_DB: inventory
+      POSTGRES_USER: inventoryuser
+      POSTGRES_PASSWORD: inventorypass
+    volumes:
+      - inventory-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inventoryuser -d inventory"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - warehouse-network
+
+  # ============================================
+  # MICROSERVICES
+  # ============================================
+  order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgres://orderuser:orderpass@order-db:5432/orders
+      INVENTORY_SERVICE_URL: http://nginx:80/inventory
+      REQUEST_TIMEOUT_MS: 3000
+    depends_on:
+      order-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - warehouse-network
+    labels:
+      - "prometheus-job=order-service"
+
+  inventory-service:
+    build:
+      context: ./services/inventory-service
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgres://inventoryuser:inventorypass@inventory-db:5432/inventory
+      # Gremlin latency configuration
+      GREMLIN_ENABLED: "true"
+      GREMLIN_EVERY_NTH_REQUEST: 5
+      GREMLIN_DELAY_MS: 5000
+      # Schrödinger failure simulation
+      CHAOS_ENABLED: "true"
+      CHAOS_CRASH_PROBABILITY: 0.1
+    depends_on:
+      inventory-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - warehouse-network
+    labels:
+      - "prometheus-job=inventory-service"
+
+  # ============================================
+  # LOAD BALANCER
+  # ============================================
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-lb
+    ports:
+      - "80:80"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - order-service
+      - inventory-service
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - warehouse-network
+
+  # ============================================
+  # MONITORING
+  # ============================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - warehouse-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - warehouse-network
+
+volumes:
+  order-db-data:
+  inventory-db-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  warehouse-network:
+    driver: bridge

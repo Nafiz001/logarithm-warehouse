@@ -1,0 +1,100 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            services/order-service/package-lock.json
+            services/inventory-service/package-lock.json
+
+      - name: Install Order Service dependencies
+        working-directory: services/order-service
+        run: npm ci
+
+      - name: Install Inventory Service dependencies
+        working-directory: services/inventory-service
+        run: npm ci
+
+      - name: Lint Order Service
+        working-directory: services/order-service
+        run: npm run lint || true
+
+      - name: Lint Inventory Service
+        working-directory: services/inventory-service
+        run: npm run lint || true
+
+  build-and-integration-test:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Start services
+        run: |
+          docker compose up -d
+          echo "Waiting for services to be healthy..."
+          sleep 30
+
+      - name: Check service health
+        run: |
+          echo "=== Checking Nginx Health ==="
+          curl -f http://localhost/health || exit 1
+          
+          echo "=== Checking Order Service Health ==="
+          curl -f http://localhost/order-health || exit 1
+          
+          echo "=== Checking Inventory Service Health ==="
+          curl -f http://localhost/inventory-health || exit 1
+
+      - name: Run integration tests
+        run: |
+          chmod +x scripts/test-load.sh
+          ./scripts/test-load.sh
+
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop services
+        if: always()
+        run: docker compose down -v
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
