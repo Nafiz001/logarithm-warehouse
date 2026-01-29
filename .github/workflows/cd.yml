@@ -49,15 +49,16 @@ jobs:
           docker compose down --remove-orphans 2>/dev/null || true
         continue-on-error: true
 
-      - name: Clean up old images
+      - name: Clean up old images and build cache
         run: |
           docker image prune -f || true
+          docker builder prune -af || true
         continue-on-error: true
 
       - name: Build and start services
         working-directory: /opt/logarithm-warehouse
         run: |
-          docker compose build
+          docker compose build --no-cache
           docker compose up -d
 
       - name: Wait for services to be healthy
