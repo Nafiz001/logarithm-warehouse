@@ -5,7 +5,9 @@
 BUET CSE Fest 2026 - Microservices and DevOps Hackathon  
 Team Logarithm
 
-Live Deployment: [http://40.81.240.99/](http://40.81.240.99/)
+Live Deployment: [Open FrostByte Logistics Dashboard](http://40.81.240.99/)
+
+👉 [Click here to open the live project](http://40.81.240.99/)
 
 ## Dashboard Preview
 
