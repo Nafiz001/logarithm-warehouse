@@ -159,7 +159,7 @@ jobs:
           echo ""
           echo "Test 3: Frontend accessible..."
           FRONTEND=$(curl -s http://localhost/)
-          if echo "$FRONTEND" | grep -q 'Logarithm Warehouse'; then
+          if echo "$FRONTEND" | grep -q 'FrostByte Logistics'; then
             echo "✅ Frontend is accessible"
           else
             echo "❌ Frontend not accessible"
