@@ -1,7 +1,7 @@
 {
   "name": "warehouse-dashboard",
   "version": "1.0.0",
-  "description": "Logarithm Warehouse Dashboard",
+  "description": "FrostByte Logistics Dashboard",
   "private": true,
   "scripts": {
     "start": "node server.js",

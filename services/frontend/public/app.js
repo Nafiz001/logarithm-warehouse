@@ -1,5 +1,5 @@
 /**
- * Logarithm Warehouse Dashboard
+ * FrostByte Logistics Dashboard
  * API Client and UI Logic
  */
 
@@ -530,7 +530,7 @@ document.getElementById('create-order-form').addEventListener('submit', async (e
  * Initialize dashboard
  */
 async function init() {
-    console.log('Initializing Logarithm Warehouse Dashboard...');
+    console.log('Initializing FrostByte Logistics Dashboard...');
     
     // Load all data in parallel
     await Promise.all([
